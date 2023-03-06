@@ -13,7 +13,7 @@ public class Player : MonoBehaviour
     public float tempACD, AttackCD, FinalDamage, FinalShootSpeed, FinalRange;
     private float MoveSpeed, Damage, DamageMul, FloatDamage, AttackSpeed, AttackSpeedMul, FloatAttackSpeed, ShootSpeed, ShootSpeedMul, Range, RangeMul;
     public float health;
-    public float maxHealth;
+    public float maxHealth = 6;
     public enum ControlType { PC, Android }
     public ControlType controlType;
     //public Joystick joystick;
@@ -30,8 +30,14 @@ public class Player : MonoBehaviour
     public float xMaxborder;
     public float yMaxborder;
 
+    [SerializeField] private UI_Inventory uiInventory;
+    [SerializeField] private UI_Stats uiStats;
+    private Inventory inventory;
+
     void Start() //Исходные статы
     {
+        health = maxHealth;
+
         tempACD = 0;
         MoveSpeed = 5;
         rotation = Quaternion.Euler(0, 0, 0); //Направление пули
@@ -73,17 +79,50 @@ public class Player : MonoBehaviour
                 AttackSpeedMul = 1;
                 break;
         }
+
+        Bullet.transform.localScale = new Vector3(6, 6, 1);
+
+        inventory = new Inventory();
+        uiInventory.SetInventory(inventory);
+
     }
 
     void Update()
     {
+        float BonusMoveSpeed = 0;
+        float BonusDamage = 0;
+        float BonusAttackSpeed = 0;
+
+        // Может сменить название на BulletSpeed?
+        float BonusShootSpeed = 0;
+        float BonusRange = 0;
+        float BonusMaxHealth = 0;
+        float BonusAttackSize = 0;
+
+        foreach (Item item in inventory.GetItemList()) {
+            switch (item.itemType)
+            {
+                default:
+                case Item.ItemType.Apple: BonusDamage = Damage * DamageMul / 10f * item.amount; break;
+                case Item.ItemType.BullHeart: BonusMaxHealth = maxHealth / 5f * item.amount; break;
+                case Item.ItemType.ShadowInABottle: BonusAttackSize = 6f / 10f * item.amount; break;
+                case Item.ItemType.BirchLeaves: BonusShootSpeed = ShootSpeed * ShootSpeedMul / 2f * item.amount; break; //10
+            }
+        }
+
+        Bullet.transform.localScale = new Vector2(6 + BonusAttackSize, 6 + BonusAttackSize);
+        maxHealth = 6 + BonusMaxHealth;
+
         if (controlType == ControlType.PC) MoveInput = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical")); //Передвижение ПК
         //else if (controlType == ControlType.Android) MoveInput = new Vector2(joystick.Horizontal, joystick.Vertical); //Передвижение Андроид
         MoveVelocity = MoveInput.normalized * MoveSpeed;
         AttackCD = 1 / (AttackSpeed * AttackSpeedMul + FloatAttackSpeed); //Конечная скорость атаки
-        FinalDamage = Damage * DamageMul + FloatDamage; //Конечный урон
-        FinalShootSpeed = ShootSpeed * ShootSpeedMul; //Конечная скорость полета пули
+        FinalDamage = Damage * DamageMul + FloatDamage + BonusDamage; //Конечный урон
+        FinalShootSpeed = ShootSpeed * ShootSpeedMul + BonusShootSpeed; //Конечная скорость полета пули
         FinalRange = Range * RangeMul; //Конечная дальность атаки
+
+        uiStats.SetStats(MoveSpeed, FinalDamage, AttackCD, FinalShootSpeed, FinalRange, Bullet.transform.localScale.x, maxHealth);
+
         if (tempACD <= 0)
         {
             Shoot();
@@ -122,6 +161,14 @@ public class Player : MonoBehaviour
         xMaxborder = gameCamera.ViewportToWorldPoint(new Vector3(1, 0, 0)).x - padding;
         yMinborder = gameCamera.ViewportToWorldPoint(new Vector3(0, 0, 0)).y + padding;
         yMaxborder = gameCamera.ViewportToWorldPoint(new Vector3(0, 1, 0)).y - padding;
+    }
+
+    private void OnTriggerEnter2D(Collider2D collider) {
+        ItemWorld itemWorld = collider.GetComponent<ItemWorld>();
+        if (itemWorld != null) {
+            inventory.AddItem(itemWorld.GetItem());
+            itemWorld.DestroySelf();
+        }
     }
         
 }
