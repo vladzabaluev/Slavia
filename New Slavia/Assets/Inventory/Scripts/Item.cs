@@ -11,6 +11,9 @@ public class Item
         BullHeart,
         ShadowInABottle,
         BirchLeaves,
+        SnakeSkin,
+        PigeonFeather,
+        Magnet,
     }
 
     public ItemType itemType;
@@ -23,6 +26,9 @@ public class Item
             case ItemType.BullHeart: return ItemAssets.Instance.BullHeartSprite;
             case ItemType.ShadowInABottle: return ItemAssets.Instance.ShadowInABottleSprite;
             case ItemType.BirchLeaves: return ItemAssets.Instance.BirchLeavesSprite;
+            case ItemType.SnakeSkin: return ItemAssets.Instance.SnakeSkinSprite;
+            case ItemType.PigeonFeather: return ItemAssets.Instance.PigeonFeatherSprite;
+            case ItemType.Magnet: return ItemAssets.Instance.MagnetSprite;
         }
     }
 
@@ -33,6 +39,9 @@ public class Item
             case ItemType.BullHeart:
             case ItemType.ShadowInABottle:
             case ItemType.BirchLeaves:
+            case ItemType.SnakeSkin:
+            case ItemType.PigeonFeather:
+            case ItemType.Magnet:
                 return true;
         }
     }

@@ -10,8 +10,9 @@ public class Player : MonoBehaviour
 
     public bool isDead = false;
 
-    public float tempACD, AttackCD, FinalDamage, FinalShootSpeed, FinalRange;
-    private float MoveSpeed, Damage, DamageMul, FloatDamage, AttackSpeed, AttackSpeedMul, FloatAttackSpeed, ShootSpeed, ShootSpeedMul, Range, RangeMul;
+    public float tempACD, AttackCD, FinalDamage, FinalShootSpeed, FinalRange, FinalItemPickupRange, FinalMoveSpeed;
+    private float MoveSpeed, Damage, FloatDamage, AttackSpeed, FloatAttackSpeed, ShootSpeed, Range, DamageReduction, ItemPickupRangeRadius;
+    private float MoveSpeedMul, DamageMul, AttackSpeedMul, ShootSpeedMul, RangeMul, ItemPickupRangeMul;
     public float health;
     public float maxHealth = 6;
     public enum ControlType { PC, Android }
@@ -24,6 +25,7 @@ public class Player : MonoBehaviour
     private Vector2 MoveInput;
     private Vector2 MoveVelocity;
     private Rigidbody2D rb;
+    public GameObject ItemPickupRange;
 
     public float xMinborder; //
     public float yMinborder;
@@ -32,7 +34,7 @@ public class Player : MonoBehaviour
 
     [SerializeField] private UI_Inventory uiInventory;
     [SerializeField] private UI_Stats uiStats;
-    private Inventory inventory;
+    public Inventory inventory;
 
     void Start() //Исходные статы
     {
@@ -40,6 +42,7 @@ public class Player : MonoBehaviour
 
         tempACD = 0;
         MoveSpeed = 5;
+        MoveSpeedMul = 1;
         rotation = Quaternion.Euler(0, 0, 0); //Направление пули
         rb = GetComponent<Rigidbody2D>();
         Damage = 1; //Урон
@@ -52,6 +55,9 @@ public class Player : MonoBehaviour
         ShootSpeedMul = 1; //Множитель скорости полета пули
         Range = 10; //Дальность атаки
         RangeMul = 1; //Множитель дальности атаки
+        DamageReduction = 0; // Снижение полученного урона
+        ItemPickupRangeRadius = 1;
+        ItemPickupRangeMul = 1;
         switch (PlayerPrefs.GetInt("GunType"))
         {
             case (1): //Обычный выстрел
@@ -89,6 +95,7 @@ public class Player : MonoBehaviour
 
     void Update()
     {
+
         float BonusMoveSpeed = 0;
         float BonusDamage = 0;
         float BonusAttackSpeed = 0;
@@ -99,6 +106,8 @@ public class Player : MonoBehaviour
         float BonusMaxHealth = 0;
         float BonusAttackSize = 0;
 
+        float BonusItemPickupRange = 0;
+
         foreach (Item item in inventory.GetItemList()) {
             switch (item.itemType)
             {
@@ -106,7 +115,10 @@ public class Player : MonoBehaviour
                 case Item.ItemType.Apple: BonusDamage = Damage * DamageMul / 10f * item.amount; break;
                 case Item.ItemType.BullHeart: BonusMaxHealth = maxHealth / 5f * item.amount; break;
                 case Item.ItemType.ShadowInABottle: BonusAttackSize = 6f / 10f * item.amount; break;
-                case Item.ItemType.BirchLeaves: BonusShootSpeed = ShootSpeed * ShootSpeedMul / 2f * item.amount; break; //10
+                case Item.ItemType.BirchLeaves: BonusShootSpeed = ShootSpeed * ShootSpeedMul / 10f * item.amount; break;
+                case Item.ItemType.SnakeSkin: DamageReduction = 2 * item.amount; break;
+                case Item.ItemType.PigeonFeather: BonusMoveSpeed = MoveSpeed * MoveSpeedMul / 10f * item.amount; break;
+                case Item.ItemType.Magnet: BonusItemPickupRange = ItemPickupRangeRadius * ItemPickupRangeMul / 10f * item.amount; break;
             }
         }
 
@@ -115,13 +127,18 @@ public class Player : MonoBehaviour
 
         if (controlType == ControlType.PC) MoveInput = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical")); //Передвижение ПК
         //else if (controlType == ControlType.Android) MoveInput = new Vector2(joystick.Horizontal, joystick.Vertical); //Передвижение Андроид
-        MoveVelocity = MoveInput.normalized * MoveSpeed;
+        FinalMoveSpeed = MoveSpeed * MoveSpeedMul + BonusMoveSpeed;
+        MoveVelocity = MoveInput.normalized * (FinalMoveSpeed * MoveSpeedMul + BonusMoveSpeed);
         AttackCD = 1 / (AttackSpeed * AttackSpeedMul + FloatAttackSpeed); //Конечная скорость атаки
         FinalDamage = Damage * DamageMul + FloatDamage + BonusDamage; //Конечный урон
         FinalShootSpeed = ShootSpeed * ShootSpeedMul + BonusShootSpeed; //Конечная скорость полета пули
         FinalRange = Range * RangeMul; //Конечная дальность атаки
 
-        uiStats.SetStats(MoveSpeed, FinalDamage, AttackCD, FinalShootSpeed, FinalRange, Bullet.transform.localScale.x, maxHealth);
+        FinalItemPickupRange = ItemPickupRangeRadius * ItemPickupRangeMul + BonusItemPickupRange;
+
+        ItemPickupRange.GetComponent<CircleCollider2D>().radius = FinalItemPickupRange;
+
+        uiStats.SetStats(FinalMoveSpeed, FinalDamage, AttackCD, FinalShootSpeed, FinalRange, Bullet.transform.localScale.x, maxHealth, DamageReduction, FinalItemPickupRange);
 
         if (tempACD <= 0)
         {
@@ -129,6 +146,7 @@ public class Player : MonoBehaviour
             tempACD = AttackCD;
         }
         else tempACD -= Time.deltaTime;
+
     }
 
     //private void Move()
@@ -170,5 +188,7 @@ public class Player : MonoBehaviour
             itemWorld.DestroySelf();
         }
     }
+
+
         
 }

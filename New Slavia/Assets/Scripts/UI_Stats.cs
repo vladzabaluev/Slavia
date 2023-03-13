@@ -8,7 +8,7 @@ public class UI_Stats : MonoBehaviour
 {
     private Inventory inventory;
     private Transform statsContainer;
-    private TextMeshProUGUI moveSpeedText, damageText, attackSpeedText, bulletSpeedText, rangeText, bulletSizeText, maxHealthText;
+    private TextMeshProUGUI moveSpeedText, damageText, attackSpeedText, bulletSpeedText, rangeText, bulletSizeText, maxHealthText, damageReductionText, itemPickupRangeText;
 
     public void Start() {
         statsContainer = transform.Find("StatsContainer");
@@ -19,9 +19,11 @@ public class UI_Stats : MonoBehaviour
         rangeText = statsContainer.Find("RangeText").GetComponent<TextMeshProUGUI>();
         bulletSizeText = statsContainer.Find("BulletSizeText").GetComponent<TextMeshProUGUI>();
         maxHealthText = statsContainer.Find("MaxHealthText").GetComponent<TextMeshProUGUI>();
+        damageReductionText = statsContainer.Find("DamageReductionText").GetComponent<TextMeshProUGUI>();
+        itemPickupRangeText = statsContainer.Find("ItemPickupRangeText").GetComponent<TextMeshProUGUI>();
     }
 
-    public void SetStats(float moveSpeed, float damage, float attackSpeed, float bulletSpeed, float range, float bulletSize, float maxHealth) {
+    public void SetStats(float moveSpeed, float damage, float attackSpeed, float bulletSpeed, float range, float bulletSize, float maxHealth, float damageReduction, float itemPickupRange) {
         moveSpeedText.SetText("Скорость: " + moveSpeed.ToString());
         damageText.SetText("Урон: " + damage.ToString());
         attackSpeedText.SetText("Скорость атаки: " + attackSpeed.ToString());
@@ -29,5 +31,7 @@ public class UI_Stats : MonoBehaviour
         rangeText.SetText("Дальность: " + range.ToString());
         bulletSizeText.SetText("Размер снарядов: " + bulletSize.ToString());
         maxHealthText.SetText("Максимальное ОЗ: " + maxHealth.ToString());
+        damageReductionText.SetText("Снижение урона: " + damageReduction.ToString());
+        itemPickupRangeText.SetText("Радиус подбора: " + itemPickupRange.ToString());
     }
 }

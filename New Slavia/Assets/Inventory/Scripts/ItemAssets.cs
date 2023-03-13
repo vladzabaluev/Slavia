@@ -16,4 +16,7 @@ public class ItemAssets : MonoBehaviour
     public Sprite BullHeartSprite;
     public Sprite ShadowInABottleSprite;
     public Sprite BirchLeavesSprite;
+    public Sprite SnakeSkinSprite;
+    public Sprite PigeonFeatherSprite;
+    public Sprite MagnetSprite;
 }
